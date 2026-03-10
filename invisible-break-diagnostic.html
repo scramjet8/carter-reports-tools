@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Scalable Is Your Strategy? | The Invisible Break Diagnostic | Carter Reports</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  body {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+    background: linear-gradient(168deg, #0f1419 0%, #1a2332 40%, #1e2d3d 100%);
+    color: #d4e3ee;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .sans { font-family: 'Trebuchet MS', 'Lucida Sans', sans-serif; }
+
+  /* ---- INTRO SCREEN ---- */
+  .screen-intro {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  .intro-wrap { max-width: 640px; width: 100%; }
+  .intro-brand { font-size: 13px; letter-spacing: 0.25em; text-transform: uppercase; color: #7a9bb5; margin-bottom: 32px; }
+  .intro-title { font-size: 42px; font-weight: 400; color: #e8eff5; line-height: 1.25; margin-bottom: 16px; letter-spacing: -0.01em; }
+  .intro-subtitle { font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; color: #5a8aa8; margin-bottom: 8px; }
+  .intro-rule { width: 48px; height: 2px; background: linear-gradient(90deg, #4a7c9b, #7ab5d4); margin: 24px auto; border-radius: 1px; }
+  .intro-desc { font-size: 18px; color: #94adc2; line-height: 1.7; max-width: 500px; margin: 0 auto 12px; }
+  .intro-audience { font-size: 16px; color: #6b8ba3; line-height: 1.6; max-width: 440px; margin: 0 auto 40px; }
+  .intro-time { margin-top: 48px; font-size: 12px; color: #4a6578; letter-spacing: 0.05em; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #3d7a9c, #4a8db5);
+    color: #fff;
+    border: none;
+    padding: 16px 48px;
+    font-size: 16px;
+    letter-spacing: 0.08em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(74, 141, 181, 0.25);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #4a8db5, #5ba0c8);
+    box-shadow: 0 6px 28px rgba(74, 141, 181, 0.35);
+  }
+
+  /* ---- QUESTION SCREEN ---- */
+  .screen-questions {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .progress-bar-bg {
+    position: fixed; top: 0; left: 0; right: 0; height: 3px;
+    background: #1a2332; z-index: 100;
+  }
+  .progress-bar-fill {
+    height: 100%; background: linear-gradient(90deg, #3d7a9c, #7ab5d4);
+    border-radius: 0 2px 2px 0; transition: width 0.5s ease;
+  }
+
+  .q-header {
+    padding: 28px 32px 0;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .q-brand { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: #4a6578; }
+  .q-count { font-size: 13px; color: #5a7a90; }
+
+  .q-main {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 20px 24px 60px;
+  }
+  .q-content { max-width: 620px; width: 100%; transition: opacity 0.3s ease, transform 0.3s ease; }
+  .q-content.animating { opacity: 0; transform: translateY(12px); }
+
+  .cat-label { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .cat-icon { font-size: 22px; color: #5a8aa8; }
+  .cat-title { font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: #c8dae8; font-weight: 600; }
+  .cat-subtitle { font-size: 16px; color: #6b8ba3; margin-bottom: 28px; font-style: italic; }
+
+  .q-text { font-size: 24px; font-weight: 400; color: #d4e3ee; line-height: 1.5; margin-bottom: 36px; }
+
+  .answer-list { display: flex; flex-direction: column; gap: 8px; }
+  .answer-btn {
+    display: flex; align-items: center; gap: 16px;
+    padding: 14px 20px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid #253545;
+    border-radius: 6px;
+    cursor: pointer; transition: all 0.2s ease;
+    text-align: left; width: 100;
+    font-family: inherit;
+  }
+  .answer-btn:hover { background: rgba(74, 141, 181, 0.07); border-color: #3a6a85; }
+  .answer-btn.selected { background: rgba(74, 141, 181, 0.15); border-color: #4a8db5; }
+
+  .answer-num {
+    min-width: 28px; height: 28px; border-radius: 14px;
+    border: 2px solid #3a5568;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; color: #5a7a90; font-weight: 600; transition: all 0.2s ease;
+  }
+  .answer-btn.selected .answer-num { border-color: #4a8db5; color: #4a8db5; background: rgba(74, 141, 181, 0.1); }
+
+  .answer-text { font-size: 16px; color: #8aa8be; line-height: 1.5; transition: color 0.2s ease; }
+  .answer-btn.selected .answer-text { color: #b8d4e8; }
+  .answer-btn:hover .answer-text { color: #a8c0d4; }
+
+  .btn-back {
+    margin-top: 24px; background: none; border: none;
+    color: #4a6578; font-size: 13px; cursor: pointer;
+    letter-spacing: 0.05em; padding: 8px 0;
+    font-family: inherit;
+  }
+  .btn-back:hover { color: #7a9bb5; }
+
+  .dots { display: flex; justify-content: center; gap: 8px; margin-top: 32px; }
+  .dot-group { display: flex; gap: 4px; }
+  .dot {
+    width: 8px; height: 8px; border-radius: 4px;
+    background: #253545; transition: all 0.3s ease;
+  }
+  .dot.answered { background: #3a6a85; }
+  .dot.current { width: 20px; background: #4a8db5; }
+
+  /* ---- RESULTS SCREEN ---- */
+  .screen-results { padding: 48px 24px; }
+  .results-wrap { max-width: 680px; margin: 0 auto; }
+
+  .results-header { text-align: center; margin-bottom: 48px; }
+  .results-label { font-size: 12px; letter-spacing: 0.25em; text-transform: uppercase; color: #5a8aa8; margin-bottom: 20px; }
+  .results-title { font-size: 34px; font-weight: 400; color: #e8eff5; margin-bottom: 8px; }
+  .results-subtitle { font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; color: #5a8aa8; margin-bottom: 4px; }
+  .results-desc { font-size: 16px; color: #6b8ba3; line-height: 1.65; max-width: 500px; margin: 0 auto; }
+
+  .result-card {
+    margin-bottom: 28px; padding: 28px 28px 24px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid #253545; border-radius: 8px;
+  }
+  .result-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .result-cat-icon { font-size: 20px; }
+  .result-cat-title { font-size: 17px; letter-spacing: 0.12em; text-transform: uppercase; color: #c8dae8; font-weight: 600; }
+
+  .stage-badge {
+    padding: 5px 14px; border-radius: 3px;
+    font-size: 13px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .stage-badge.instinct { background: rgba(204,68,68,0.08); border: 1px solid rgba(204,68,68,0.25); color: #c44; }
+  .stage-badge.transition { background: rgba(182,138,26,0.08); border: 1px solid rgba(182,138,26,0.25); color: #b68a1a; }
+  .stage-badge.system { background: rgba(42,125,79,0.08); border: 1px solid rgba(42,125,79,0.25); color: #2a7d4f; }
+
+  .score-bar-bg {
+    height: 6px; background: #1a2838; border-radius: 3px;
+    margin-bottom: 20px; overflow: hidden; position: relative;
+  }
+  .score-bar-zone { position: absolute; top: 0; bottom: 0; width: 1px; background: #253545; }
+  .score-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease-out; }
+  .score-bar-fill.instinct { background: linear-gradient(90deg, rgba(204,68,68,0.56), #c44); }
+  .score-bar-fill.transition { background: linear-gradient(90deg, rgba(182,138,26,0.56), #b68a1a); }
+  .score-bar-fill.system { background: linear-gradient(90deg, rgba(42,125,79,0.56), #2a7d4f); }
+
+  .result-desc { font-size: 16px; color: #94adc2; line-height: 1.7; margin-bottom: 18px; }
+  .next-step-box {
+    padding: 16px 20px; background: rgba(74, 141, 181, 0.06);
+    border-radius: 5px; border-left: 2px solid rgba(74, 141, 181, 0.31);
+  }
+  .next-step-label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: #5a8aa8; margin-bottom: 8px; }
+  .next-step-text { font-size: 15px; color: #8aa8be; line-height: 1.65; }
+
+  /* CTAs */
+  .cta-email {
+    margin-top: 40px; padding: 32px 28px;
+    background: rgba(74, 141, 181, 0.06);
+    border: 1px solid #304a5e; border-radius: 8px; text-align: center;
+  }
+  .cta-email h3 { font-size: 20px; font-weight: 400; color: #d4e3ee; margin-bottom: 8px; }
+  .cta-email p { font-size: 15px; color: #7a9bb5; line-height: 1.65; max-width: 480px; margin: 0 auto 24px; }
+
+  .email-form { display: flex; gap: 10px; max-width: 440px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+  .email-input {
+    flex: 1 1 240px; padding: 13px 18px; font-size: 15px;
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif;
+    background: rgba(255,255,255,0.05); border: 1px solid #3a5568;
+    border-radius: 4px; color: #d4e3ee; outline: none;
+  }
+  .email-input:focus { border-color: #4a8db5; }
+  .email-input::placeholder { color: #4a6578; }
+
+  .btn-email {
+    padding: 13px 28px;
+    background: linear-gradient(135deg, #3d7a9c, #4a8db5);
+    color: #fff; border: none; border-radius: 4px;
+    font-size: 14px; letter-spacing: 0.08em; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(74, 141, 181, 0.2); white-space: nowrap;
+  }
+
+  .email-confirm {
+    padding: 16px 24px; background: rgba(42, 125, 79, 0.1);
+    border: 1px solid rgba(42, 125, 79, 0.3); border-radius: 6px;
+    max-width: 440px; margin: 0 auto;
+  }
+  .email-confirm p { font-size: 15px; color: #7dbd9a; margin: 0; line-height: 1.5; }
+
+  .email-fine { font-size: 12px; color: #4a6578; margin-top: 14px; }
+
+  .cta-canvas {
+    margin-top: 20px; padding: 28px; background: rgba(255,255,255,0.02);
+    border: 1px solid #253545; border-radius: 8px; text-align: center;
+  }
+  .cta-canvas h3 { font-size: 18px; font-weight: 400; color: #d4e3ee; margin-bottom: 10px; }
+  .cta-canvas p { font-size: 14px; color: #7a9bb5; line-height: 1.65; max-width: 460px; margin: 0 auto 20px; }
+  .btn-canvas {
+    display: inline-block; background: transparent; color: #4a8db5;
+    border: 1px solid #4a8db5; padding: 12px 32px; font-size: 13px;
+    letter-spacing: 0.1em; text-transform: uppercase; border-radius: 4px;
+    text-decoration: none; transition: all 0.2s ease;
+  }
+  .btn-canvas:hover { background: rgba(74, 141, 181, 0.1); }
+
+  .cta-row { margin-top: 20px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .cta-card {
+    flex: 1 1 280px; padding: 24px; background: rgba(255,255,255,0.02);
+    border: 1px solid #253545; border-radius: 8px; text-align: center;
+  }
+  .cta-card h4 { font-size: 15px; font-weight: 600; color: #c8dae8; margin-bottom: 8px; }
+  .cta-card p { font-size: 13px; color: #6b8ba3; line-height: 1.55; margin-bottom: 16px; }
+
+  .btn-secondary {
+    padding: 10px 24px; background: rgba(255,255,255,0.04);
+    color: #7a9bb5; border: 1px solid #3a5568; border-radius: 4px;
+    font-size: 13px; letter-spacing: 0.06em; cursor: pointer;
+    transition: all 0.2s ease; text-decoration: none; display: inline-block;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.07); color: #a8c8de; }
+  .btn-secondary.copied { background: rgba(42, 125, 79, 0.15); color: #7dbd9a; border-color: rgba(42, 125, 79, 0.3); }
+
+  .retake-area { text-align: center; margin-top: 32px; }
+  .btn-retake {
+    background: none; border: none; color: #4a6578;
+    font-size: 13px; cursor: pointer; letter-spacing: 0.05em; padding: 8px 16px;
+    font-family: inherit;
+  }
+  .btn-retake:hover { color: #7a9bb5; }
+
+  .footer {
+    text-align: center; margin-top: 40px; padding-top: 24px;
+    border-top: 1px solid #1a2838; font-size: 12px; color: #3a5568;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .intro-title { font-size: 32px; }
+    .q-text { font-size: 20px; }
+    .results-title { font-size: 28px; }
+    .cta-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- All screens rendered, toggled via JS -->
+<div id="app"></div>
+
+<script>
+const CATEGORIES = [
+  {
+    id: "compass", title: "Strategic Compass",
+    subtitle: "Do you know where you\u2019re competing \u2014 and why?", icon: "\u25C7",
+    questions: [
+      { id: "q1", text: "How clearly has your company defined where it competes and where it deliberately does not?",
+        anchors: ["We haven\u2019t defined this","Loosely understood by founders","Discussed but not documented","Written down and mostly shared","Explicit, documented, and used in decisions"] },
+      { id: "q2", text: "Could your leadership team independently describe your competitive positioning in consistent language?",
+        anchors: ["They\u2019d give very different answers","Roughly similar but vague","Similar themes, different words","Mostly consistent","Nearly identical \u2014 we\u2019ve aligned on this"] },
+      { id: "q3", text: "When a new opportunity arises, how often does the team have a shared basis for saying yes or no?",
+        anchors: ["Almost never \u2014 we chase everything","Rarely \u2014 gut feel drives it","Sometimes \u2014 depends who\u2019s in the room","Usually \u2014 we have informal criteria","Consistently \u2014 clear filters are in place"] }
+    ]
+  },
+  {
+    id: "commitment", title: "Strategic Commitment",
+    subtitle: "Are you making real bets \u2014 or spreading thin?", icon: "\u25A3",
+    questions: [
+      { id: "q4", text: "How many strategic initiatives is your company actively pursuing this quarter?",
+        anchors: ["Too many to count","More than we can resource well","Several \u2014 some get more attention","A focused set with clear priorities","2\u20133 deliberate bets with real investment"] },
+      { id: "q5", text: "Can you identify which 2\u20133 bets are receiving disproportionate investment of time and money?",
+        anchors: ["No \u2014 everything gets a little","Vaguely \u2014 nothing is formally prioritized","We know what matters but don\u2019t enforce it","Yes \u2014 leadership is aligned on the big bets","Yes \u2014 and the team knows it too"] },
+      { id: "q6", text: "How often do good-sounding ideas get funded without being evaluated against existing commitments?",
+        anchors: ["Constantly \u2014 we can\u2019t say no","Often \u2014 shiny objects win","Sometimes \u2014 depends on who proposes it","Rarely \u2014 we check against priorities","Almost never \u2014 new ideas go through a clear filter"] }
+    ]
+  },
+  {
+    id: "alignment", title: "Decision Alignment",
+    subtitle: "Do decisions stay coherent as the team grows?", icon: "\u25C8",
+    questions: [
+      { id: "q7", text: "When someone two levels below you makes a significant decision, how often does it align with the company\u2019s strategic direction?",
+        anchors: ["Rarely \u2014 we find misalignment constantly","Occasionally \u2014 it\u2019s hit or miss","Sometimes \u2014 good people still guess wrong","Usually \u2014 the direction is generally understood","Almost always \u2014 strategy is embedded in how we decide"] },
+      { id: "q8", text: "Does your team use a shared set of criteria when evaluating new investments, hires, or partnerships?",
+        anchors: ["No shared criteria exist","Informal and inconsistent","Some criteria, unevenly applied","Defined criteria, mostly followed","Clear criteria used consistently across decisions"] },
+      { id: "q9", text: "How often do you discover that departments or teams have been working toward conflicting priorities?",
+        anchors: ["Frequently \u2014 it\u2019s a constant fire","Often \u2014 we catch it late","Sometimes \u2014 it surfaces in reviews","Rarely \u2014 alignment is generally strong","Almost never \u2014 we have systems to prevent it"] }
+    ]
+  },
+  {
+    id: "intelligence", title: "Market Intelligence",
+    subtitle: "Are you seeing what\u2019s changing before it hits you?", icon: "\u25CE",
+    questions: [
+      { id: "q10", text: "How regularly does your leadership team examine shifts in customer behavior, competitive moves, or market conditions?",
+        anchors: ["Almost never \u2014 we\u2019re heads-down on execution","Annually at most","Quarterly, but it\u2019s surface-level","Regularly, with structured discussion","Continuously \u2014 it\u2019s part of our operating rhythm"] },
+      { id: "q11", text: "When was the last time an external change forced you to revisit a strategic assumption?",
+        anchors: ["Can\u2019t remember \u2014 we don\u2019t track this","It happened but we reacted too late","Within the last year, caught it eventually","Recently \u2014 we spotted and adapted","We proactively test assumptions before they break"] },
+      { id: "q12", text: "How much of your leadership team\u2019s attention goes to internal execution versus external landscape?",
+        anchors: ["Almost entirely internal","Heavily internal, occasional external glance","Mostly internal with periodic market review","Balanced \u2014 both get structured time","Deliberately split with external scanning built in"] }
+    ]
+  }
+];
+
+const STAGE_DESCRIPTIONS = {
+  compass: {
+    Instinct: "Your strategic positioning lives in the founder\u2019s head. The team is making decisions without a shared understanding of where you compete or why. This is the most common source of wasted effort in growing companies.",
+    Transition: "You\u2019ve started articulating your positioning, but it\u2019s unevenly understood across the team. Some decisions align; others drift. The foundation is forming but hasn\u2019t hardened yet.",
+    System: "Your competitive positioning is explicit, shared, and actively used in decisions. The team can independently apply strategic filters. This is a real asset as you scale."
+  },
+  commitment: {
+    Instinct: "You\u2019re funding too many things at once and struggling to say no. Resources are scattered across initiatives without clear prioritization. This is the most expensive form of the invisible break.",
+    Transition: "Leadership has a sense of what matters most, but it\u2019s not enforced consistently. Good ideas still pull resources away from the big bets. You\u2019re close \u2014 but close doesn\u2019t compound.",
+    System: "You\u2019ve made hard choices and the team knows it. Investment is concentrated on a small number of deliberate bets. New ideas are evaluated against existing commitments, not just on their own merit."
+  },
+  alignment: {
+    Instinct: "Decisions across the organization frequently contradict each other. People are talented but operating without shared criteria. The founder is the only integration point \u2014 and that doesn\u2019t scale.",
+    Transition: "Alignment exists at the leadership level but breaks down as decisions move further from the center. You\u2019re catching conflicts, but often too late. Process is emerging but not yet reliable.",
+    System: "Decisions stay coherent even as they move away from the founder. Shared criteria and a common strategic logic guide choices across the team. This is what allows growth without chaos."
+  },
+  intelligence: {
+    Instinct: "Your leadership team is almost entirely focused on internal execution. Market shifts, competitive moves, and changes in customer behavior are reaching you late \u2014 or not at all. You\u2019re flying without instruments.",
+    Transition: "You\u2019re aware that external scanning matters, but it\u2019s sporadic and unstructured. When changes hit, you react rather than anticipate. The intelligence muscle is developing but not yet dependable.",
+    System: "External scanning is built into your operating rhythm. You regularly test strategic assumptions against market reality and catch shifts before they become crises. This is rare and valuable at your stage."
+  }
+};
+
+const ACTION_ITEMS = {
+  compass: {
+    Instinct: "Write a one-page positioning document this week: where you compete, who you serve, and what you\u2019re not doing. Share it with your leadership team and pressure-test it.",
+    Transition: "Take your existing positioning language and formalize it into decision criteria the team can use without you in the room. Test it on the last three opportunities you said yes to.",
+    System: "Maintain and refresh annually. Use it as the opening context for quarterly planning and every significant resource decision."
+  },
+  commitment: {
+    Instinct: "List every active initiative. Force-rank them. Pick the top 2\u20133 and explicitly defund or pause the rest. This will be the hardest and most valuable thing you do this quarter.",
+    Transition: "Create a visible commitment filter: before any new initiative gets resources, it must be evaluated against your current top bets. Make this a leadership team norm, not just a conversation.",
+    System: "Keep the discipline. Review your bets quarterly. The risk at this stage isn\u2019t lack of focus \u2014 it\u2019s complacency. Make sure your bets are still the right ones."
+  },
+  alignment: {
+    Instinct: "Start with three shared decision criteria that every significant choice should run through. Communicate them repeatedly until the team can recite them without prompting.",
+    Transition: "Audit recent decisions made below the leadership level. Where alignment broke, diagnose whether the issue was unclear criteria or lack of communication. Fix the specific gap.",
+    System: "Invest in onboarding and reinforcement. Your systems work \u2014 make sure new hires absorb them quickly. The biggest risk is dilution as headcount grows."
+  },
+  intelligence: {
+    Instinct: "Block 90 minutes monthly for your leadership team to discuss one external question: what\u2019s changing in our market that could affect our assumptions? Start the habit before you optimize it.",
+    Transition: "Assign someone to own a simple market scan \u2014 even a monthly summary of customer feedback patterns, competitor moves, and industry signals. Structure beats sporadic attention.",
+    System: "Connect your intelligence to your planning. The value isn\u2019t in knowing what\u2019s changing \u2014 it\u2019s in adjusting your bets before the change forces you to."
+  }
+};
+
+// ---- STATE ----
+let phase = "intro";
+let currentCat = 0;
+let currentQ = 0;
+let answers = {};
+let emailSubmitted = false;
+let shareCopied = false;
+
+function getStageLabel(avg) {
+  if (avg <= 2.33) return "Instinct";
+  if (avg <= 3.66) return "Transition";
+  return "System";
+}
+
+function getCategoryScore(catId) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  const scores = cat.questions.map(q => answers[q.id]).filter(Boolean);
+  if (scores.length === 0) return 0;
+  return scores.reduce((a, b) => a + b, 0) / scores.length;
+}
+
+function answeredCount() { return Object.keys(answers).length; }
+function globalIndex() { return currentCat * 3 + currentQ; }
+
+// ---- RENDER ----
+function render() {
+  const app = document.getElementById("app");
+  if (phase === "intro") app.innerHTML = renderIntro();
+  else if (phase === "questions") app.innerHTML = renderQuestions();
+  else if (phase === "results") app.innerHTML = renderResults();
+  bindEvents();
+}
+
+function renderIntro() {
+  return `
+    <div class="screen-intro">
+      <div class="intro-wrap">
+        <div class="intro-brand sans">Carter Reports</div>
+        <h1 class="intro-title">How Scalable Is<br>Your Strategy?</h1>
+        <div class="intro-subtitle sans">The Invisible Break Diagnostic</div>
+        <div class="intro-rule"></div>
+        <p class="intro-desc">12 questions. Four categories. A clear picture of whether your strategy is ready for the next phase of growth \u2014 or quietly breaking under the weight of it.</p>
+        <p class="intro-audience">Built for founders and leadership teams at companies between $2M and $15M in revenue.</p>
+        <button class="btn-primary sans" data-action="start">Begin Diagnostic</button>
+        <div class="intro-time sans">Takes approximately 4 minutes</div>
+      </div>
+    </div>`;
+}
+
+function renderQuestions() {
+  const cat = CATEGORIES[currentCat];
+  const q = cat.questions[currentQ];
+  const gi = globalIndex();
+  const ac = answeredCount();
+  const pct = (ac / 12) * 100;
+
+  let dots = "";
+  CATEGORIES.forEach((c, ci) => {
+    let group = '<div class="dot-group">';
+    c.questions.forEach((qu, qi) => {
+      const idx = ci * 3 + qi;
+      let cls = "dot";
+      if (idx === gi) cls += " current";
+      else if (answers[qu.id]) cls += " answered";
+      group += `<div class="${cls}"></div>`;
+    });
+    group += "</div>";
+    dots += group;
+  });
+
+  let answerHtml = "";
+  q.anchors.forEach((anchor, i) => {
+    const val = i + 1;
+    const sel = answers[q.id] === val ? " selected" : "";
+    answerHtml += `
+      <button class="answer-btn${sel}" data-action="answer" data-value="${val}">
+        <div class="answer-num sans">${val}</div>
+        <span class="answer-text">${anchor}</span>
+      </button>`;
+  });
+
+  const backBtn = gi > 0
+    ? '<button class="btn-back sans" data-action="back">\u2190 Previous question</button>'
+    : "";
+
+  return `
+    <div class="screen-questions">
+      <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+      <div class="q-header">
+        <div class="q-brand sans">Carter Reports</div>
+        <div class="q-count sans">${ac} of 12</div>
+      </div>
+      <div class="q-main">
+        <div class="q-content" id="qContent">
+          <div class="cat-label">
+            <span class="cat-icon">${cat.icon}</span>
+            <span class="cat-title sans">${cat.title}</span>
+          </div>
+          <div class="cat-subtitle">${cat.subtitle}</div>
+          <h2 class="q-text">${q.text}</h2>
+          <div class="answer-list">${answerHtml}</div>
+          ${backBtn}
+          <div class="dots">${dots}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderResults() {
+  let cardsHtml = "";
+
+  CATEGORIES.forEach(cat => {
+    const avg = getCategoryScore(cat.id);
+    const stage = getStageLabel(avg);
+    const stageLower = stage.toLowerCase();
+    const desc = STAGE_DESCRIPTIONS[cat.id][stage];
+    const action = ACTION_ITEMS[cat.id][stage];
+    const stageColors = { instinct: "#c44", transition: "#b68a1a", system: "#2a7d4f" };
+    const color = stageColors[stageLower];
+
+    cardsHtml += `
+      <div class="result-card" style="border-left: 3px solid ${color}">
+        <div class="result-card-header">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span class="result-cat-icon" style="color:${color}">${cat.icon}</span>
+              <span class="result-cat-title sans">${cat.title}</span>
+            </div>
+          </div>
+          <div class="stage-badge ${stageLower} sans">${stage}</div>
+        </div>
+        <div class="score-bar-bg">
+          <div class="score-bar-zone" style="left:33.3%"></div>
+          <div class="score-bar-zone" style="left:66.6%"></div>
+          <div class="score-bar-fill ${stageLower}" style="width:${(avg/5)*100}%"></div>
+        </div>
+        <p class="result-desc">${desc}</p>
+        <div class="next-step-box">
+          <div class="next-step-label sans">Next Step</div>
+          <p class="next-step-text">${action}</p>
+        </div>
+      </div>`;
+  });
+
+  const emailSection = !emailSubmitted
+    ? `<div class="email-form">
+        <input type="email" class="email-input" id="emailInput" placeholder="you@company.com">
+        <button class="btn-email sans" data-action="submit-email">Send My Results</button>
+      </div>`
+    : `<div class="email-confirm"><p>\u2713 You\u2019re in. Check your inbox for your full diagnostic profile and action plan.</p></div>`;
+
+  const shareLabel = shareCopied ? "\u2713 Link Copied" : "Copy Share Link";
+  const shareClass = shareCopied ? "btn-secondary sans copied" : "btn-secondary sans";
+
+  return `
+    <div class="screen-results">
+      <div class="results-wrap">
+        <div class="results-header">
+          <div class="results-label sans">Your Diagnostic Profile</div>
+          <h1 class="results-title">How Scalable Is Your Strategy?</h1>
+          <div class="results-subtitle sans">The Invisible Break Diagnostic</div>
+          <div class="intro-rule"></div>
+          <p class="results-desc">
+            Each category shows where your strategic foundations fall on the
+            <span style="color:#c44"> Instinct</span> \u2192
+            <span style="color:#b68a1a"> Transition</span> \u2192
+            <span style="color:#2a7d4f"> System</span> spectrum.
+          </p>
+        </div>
+
+        ${cardsHtml}
+
+        <div class="cta-email">
+          <h3>Get Your Full Results</h3>
+          <p>Enter your email to receive a PDF of your diagnostic profile with detailed action steps \u2014 plus weekly strategic insights from Carter Reports.</p>
+          ${emailSection}
+          <p class="email-fine">No spam. Unsubscribe anytime.</p>
+        </div>
+
+        <div class="cta-canvas">
+          <h3>From Diagnostic to Action</h3>
+          <p>The Execution Canvas helps you translate these findings into a strategic plan your team can execute. Download it free.</p>
+          <a href="https://www.davidpaulcarter.com" target="_blank" rel="noopener noreferrer" class="btn-canvas sans">Get the Execution Canvas</a>
+        </div>
+
+        <div class="cta-row">
+          <div class="cta-card">
+            <h4 class="sans">Have Your Team Take It</h4>
+            <p>The real value shows up when your leadership team compares profiles.</p>
+            <button class="${shareClass}" data-action="share">${shareLabel}</button>
+          </div>
+          <div class="cta-card">
+            <h4 class="sans">Read the Full Article</h4>
+            <p>Understand why growing companies hit this break \u2014 and what to build in its place.</p>
+            <a href="https://www.davidpaulcarter.com/invisible-break-growth-outpaces-strategy" target="_blank" rel="noopener noreferrer" class="btn-secondary sans">The Invisible Break \u2192</a>
+          </div>
+        </div>
+
+        <div class="retake-area">
+          <button class="btn-retake sans" data-action="retake">Retake Diagnostic</button>
+        </div>
+
+        <div class="footer">
+          \u00A9 Carter Reports \u2014 The Invisible Break Diagnostic
+        </div>
+      </div>
+    </div>`;
+}
+
+// ---- EVENT BINDING ----
+function bindEvents() {
+  document.querySelectorAll("[data-action]").forEach(el => {
+    el.addEventListener("click", handleAction);
+  });
+}
+
+function handleAction(e) {
+  const btn = e.currentTarget;
+  const action = btn.dataset.action;
+
+  if (action === "start") {
+    phase = "questions";
+    render();
+  }
+  else if (action === "answer") {
+    const val = parseInt(btn.dataset.value);
+    const cat = CATEGORIES[currentCat];
+    const q = cat.questions[currentQ];
+    answers[q.id] = val;
+
+    // Animate out
+    const content = document.getElementById("qContent");
+    if (content) {
+      content.classList.add("animating");
+      setTimeout(() => {
+        if (currentQ < 2) currentQ++;
+        else if (currentCat < 3) { currentCat++; currentQ = 0; }
+        else { phase = "results"; }
+        render();
+      }, 350);
+    }
+  }
+  else if (action === "back") {
+    if (currentQ > 0) currentQ--;
+    else if (currentCat > 0) { currentCat--; currentQ = 2; }
+    render();
+  }
+  else if (action === "submit-email") {
+    const input = document.getElementById("emailInput");
+    if (input && input.value && input.value.includes("@")) {
+      emailSubmitted = true;
+      render();
+    }
+  }
+  else if (action === "share") {
+    const url = window.location.href;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        shareCopied = true;
+        render();
+        setTimeout(() => { shareCopied = false; render(); }, 3000);
+      });
+    } else {
+      shareCopied = true;
+      render();
+      setTimeout(() => { shareCopied = false; render(); }, 3000);
+    }
+  }
+  else if (action === "retake") {
+    phase = "intro";
+    currentCat = 0;
+    currentQ = 0;
+    answers = {};
+    emailSubmitted = false;
+    shareCopied = false;
+    render();
+  }
+}
+
+// ---- INIT ----
+render();
+</script>
+</body>
+</html>
